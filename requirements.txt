@@ -1,0 +1,13 @@
+git+https://github.com/antkopp/quant-portfolio-base.git@cffe69b4e2fb7639ef9dbd83f2d122a8939ba0f3
+numpy
+pandas
+scipy
+scikit-learn
+hmmlearn>=0.3.0
+matplotlib
+pyarrow
+pyyaml
+duckdb>=0.10.0
+boto3>=1.34.0
+supabase
+python-dotenv

@@ -1,0 +1,88 @@
+# =============================================================================
+# Stratégie « Dynamic Opportunity » — Rotation Risk On / Risk Off (actions ACWI).
+# Pipeline 4 étapes : régime (ETF) → baromètre (secteur×région) → budgets → sélection.
+# Rebalancement HYBRIDE : cadence moteur quotidienne ('B') + décision interne
+# (ancre hebdo `base_rebal_days` + bascule de régime) dans rotation/runner.py.
+# =============================================================================
+
+start_date: "2015-01-02"
+source: "parquet"                 # 'parquet' (R2) | 'supabase' | 'auto'
+use_exclusion_list: false
+
+backtest:
+  start_date_data: "2010-01-04"
+  end_date: null
+  trading_days: 252
+  risk_free_rate: 0.02
+  rebalance_frequency: "B"        # QUOTIDIEN (la décision réelle de rebal est interne)
+  rebal_last_day: true
+  include_transaction_costs: true
+  include_management_fees: false
+  min_ticker_observations: 252
+  delisting_return: -1.0
+  data_access: "pit"              # ACWI très large → point-in-time (nécessite R2)
+  pit_max_lookback_days: 550
+
+universe:
+  universe_name: "ACWI"
+  strategy_name: "DynamicOpportunity"
+  strategy_variant: "rules"
+  exchanges: ["US", "TO", "LSE", "PA", "XETRA", "SW", "AS", "MC", "MI", "T", "HK", "KO", "SI", "AU", "SS", "NS", "SA", "MX"]
+  portfolio_currency: "USD"
+  security_types: ["Common Stock"]   # ACTIONS ONLY (ETF exclus de l'investissable)
+  include_delisted: true
+
+universe_filter:
+  method: "top_n_per_exchange"
+  metric: "adtv"
+  adtv_lookback_days: 63
+  top_n_per_exchange: 100
+  max_per_exchange: 200
+
+returns:
+  zscore_threshold: 3
+  zscore_window: 252
+
+portfolio:
+  threshold_wgts: 0.005
+  normalize_weights: true
+
+transaction_costs:
+  min_trade_pct: 0.005
+  reference_portfolio_eur: 1000000
+  eur_chf_rate: 0.95
+  include_stamp_duty: true
+  stamp_duty_bps: 7.5
+  stamp_duty_ch_bps: 7.5
+  stamp_duty_foreign_bps: 15.0
+  include_fx: true
+  fx_spread_bps: 20.0
+  bid_ask_spread_bps: 15.0
+  smi_spread_bps: 5.0
+  cantonal_banks_spread_bps: 25.0
+  realtime_fee_chf: 0.0
+  swissquote_tiers_chf:
+    - [500, 9.0]
+    - [2000, 16.0]
+    - [10000, 30.0]
+    - [15000, 50.0]
+    - [null, 90.0]
+
+management_fees:
+  annual_fee_pct: 0.0
+
+optimizer:
+  rotation:
+    regime_method: "rules"          # 'rules' | 'hmm' | 'causal'
+    base_rebal_days: 7              # ancre hebdo (rebal interne) ; bascule régime = quotidien
+    regime_on_threshold: 0.20
+    regime_off_threshold: -0.20
+    barometer_momentum_lookback: 126
+    alloc_top_categories: 8
+    alloc_max_per_category: 0.25
+    alloc_max_per_region: 0.50
+    target_positions_min: 10
+    target_positions_max: 20
+    selection_fundamental_weight: 0.5
+    selection_momentum_weight: 0.5
+    max_position_weight: 0.12

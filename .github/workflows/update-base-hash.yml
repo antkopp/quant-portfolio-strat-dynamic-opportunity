@@ -1,0 +1,42 @@
+name: Update quant-portfolio-base hash
+
+on:
+  repository_dispatch:
+    types:
+      - base-updated
+
+jobs:
+  update-requirements:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          token: ${{ secrets.STRATEGY_REPO_TOKEN }}
+          ref: main
+          fetch-depth: 0
+
+      - name: Update hash in requirements.txt
+        run: |
+          SHA="${{ github.event.client_payload.base_sha }}"
+          echo "Target SHA: ${SHA}"
+          echo "Before:"
+          grep "quant-portfolio-base" requirements.txt || echo "(no match)"
+          sed -i "s|git+https://github.com/antkopp/quant-portfolio-base\.git@[a-f0-9]\+|git+https://github.com/antkopp/quant-portfolio-base.git@${SHA}|" requirements.txt
+          echo "After:"
+          grep "quant-portfolio-base" requirements.txt || echo "(no match)"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add requirements.txt
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: bump quant-portfolio-base to ${{ github.event.client_payload.base_sha }}"
+          git pull --rebase origin main
+          git push origin main
