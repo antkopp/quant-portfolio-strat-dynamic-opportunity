@@ -25,7 +25,7 @@
 
 ---
 
-## 1bis. La stratégie expliquée simplement (pour néophyte)
+## 1bis. La stratégie expliquée simplement
 
 ### L'idée en une phrase
 Le marché alterne des phases **« Risk On »** (les investisseurs prennent du risque : les
