@@ -180,13 +180,16 @@ class _FakeClient:
 def test_fundamentals_no_lookahead():
     from rotation.data_fundamentals import FundamentalsPIT
     tickers = [{"id": "id1", "code": "AAA", "exchange": "US"}]
+    # schéma déployé : income_statement / balance_sheet en JSONB, period_type, filing_date
     stmts = [
-        {"ticker_id": "id1", "statement_type": "income_statement", "period_type": "yearly",
+        {"ticker_id": "id1", "period_type": "yearly",
          "fiscal_date": "2020-12-31", "filing_date": "2021-02-15",
-         "data": '{"totalRevenue": 100, "netIncome": 10}'},
-        {"ticker_id": "id1", "statement_type": "income_statement", "period_type": "yearly",
+         "income_statement": {"totalRevenue": 100, "netIncome": 10},
+         "balance_sheet": {"totalStockholderEquity": 50, "totalAssets": 120}},
+        {"ticker_id": "id1", "period_type": "yearly",
          "fiscal_date": "2021-12-31", "filing_date": "2022-02-15",   # FUTUR vs as_of
-         "data": '{"totalRevenue": 200, "netIncome": 30}'},
+         "income_statement": {"totalRevenue": 200, "netIncome": 30},
+         "balance_sheet": {"totalStockholderEquity": 60, "totalAssets": 140}},
     ]
     fake = _FakeClient({"tickers": tickers, "financial_statements": stmts})
     pit = FundamentalsPIT(["US"], _client=fake)

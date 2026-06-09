@@ -63,18 +63,25 @@ def check_financials(sb):
 
 
 def check_sectors(sb):
-    print("\n=== 3. Couverture secteur/pays (actions ACWI) ===")
+    print("\n=== 3. Couverture secteur (source = fundamentals_snapshot) ===")
     total = (sb.schema("raw").table("tickers").select("id", count="exact")
              .in_("exchange", ACWI_EXCHANGES).eq("type", "Common Stock")
              .limit(1).execute()).count
-    with_sector = (sb.schema("raw").table("tickers").select("id", count="exact")
-                   .in_("exchange", ACWI_EXCHANGES).eq("type", "Common Stock")
-                   .not_.is_("sector", "null").limit(1).execute()).count
-    print(f"  Actions ACWI        : {total}")
-    cov = (with_sector / total * 100) if total else 0
-    print(f"  Avec secteur renseigné : {with_sector} ({cov:.0f}%)")
-    if cov < 70:
-        print("  ⚠️ Couverture secteur faible → enrichir raw.tickers.sector via l'ETL.")
+    tickers_sect = (sb.schema("raw").table("tickers").select("id", count="exact")
+                    .in_("exchange", ACWI_EXCHANGES).eq("type", "Common Stock")
+                    .not_.is_("sector", "null").limit(1).execute()).count
+    print(f"  Actions ACWI                 : {total}")
+    print(f"  Avec secteur dans raw.tickers : {tickers_sect}  "
+          f"(souvent ~0 → on enrichit via fundamentals_snapshot)")
+    try:
+        snap_sect = (sb.schema("raw").table("fundamentals_snapshot")
+                     .select("ticker_id", count="exact")
+                     .not_.is_("sector", "null").limit(1).execute()).count
+        print(f"  Lignes fundamentals_snapshot avec secteur : {snap_sect}")
+        if not snap_sect:
+            print("  ⚠️ Aucun secteur en base → baromètre dégénéré. Lancer la sync fundamentals (ETL).")
+    except Exception as e:
+        print(f"  fundamentals_snapshot : erreur {e}")
 
 
 def main():
