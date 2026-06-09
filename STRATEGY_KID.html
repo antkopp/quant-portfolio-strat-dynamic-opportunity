@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dynamic Opportunity — Key Information Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<style>
+:root{
+  --bg:#0a0f24; --card:#0e1530; --card2:#111a3a; --line:#1e3f66;
+  --txt:#e8eefc; --muted:#9fb3d4; --accent:#00bfff; --accent2:#66ccff; --link:#7cc0ff;
+  --code:#0c1430; --green:#5ce0a8; --red:#ff7a8a; --amber:#ffcf6b;
+}
+*{box-sizing:border-box;}
+html,body{background:var(--bg);margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;color:var(--txt);line-height:1.55;font-size:14px;}
+.page{width:210mm;max-width:210mm;margin:24px auto;padding:18mm 16mm;background:var(--bg);
+  border-radius:10px;box-shadow:0 0 30px rgba(0,0,0,.85);}
+.hero{background:linear-gradient(135deg,#0e1733 0%,#0a0f24 70%);border:1px solid var(--line);
+  border-radius:12px;padding:26px 28px;margin-bottom:22px;}
+.hero .tag{color:var(--accent);font-weight:700;letter-spacing:.18em;font-size:11px;text-transform:uppercase;}
+.hero h1{margin:6px 0 4px;font-size:30px;font-weight:800;color:#fff;border:none;padding:0;}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:13px;}
+#chart{height:300px;margin:14px 0 4px;}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 6px;margin:18px 0 26px;}
+.chart-card .cap{color:var(--muted);font-size:12px;margin:0 4px 6px;}
+h1,h2,h3,h4{color:#fff;font-weight:700;line-height:1.25;}
+h1{font-size:24px;border-bottom:2px solid var(--line);padding-bottom:6px;margin:34px 0 14px;}
+h2{font-size:19px;color:var(--accent2);margin:30px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--line);}
+h3{font-size:15.5px;color:var(--accent2);margin:22px 0 8px;}
+h4{font-size:14px;color:var(--link);margin:16px 0 6px;}
+p{margin:9px 0;}
+a{color:var(--link);text-decoration:none;} a:hover{text-decoration:underline;}
+strong{color:#fff;font-weight:700;}
+hr{border:none;border-top:1px solid var(--line);margin:26px 0;}
+ul,ol{padding-left:22px;} li{margin:4px 0;}
+blockquote{border-left:3px solid var(--accent);background:var(--card);margin:12px 0;padding:8px 16px;
+  color:var(--muted);border-radius:0 8px 8px 0;}
+blockquote strong{color:var(--accent2);}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--code);color:#bcd6ff;
+  padding:1.5px 6px;border-radius:5px;border:1px solid var(--line);}
+pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;color:#cfe0ff;}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:12.5px;}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12.8px;border-radius:8px;overflow:hidden;}
+th,td{border:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top;}
+th{background:var(--card2);color:var(--accent2);font-weight:600;}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+tr:hover td{background:rgba(0,191,255,.06);}
+@media print{
+  @page{size:A4;margin:10mm;}
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;width:auto;padding:0;}
+}
+@media (max-width:840px){.page{width:auto;padding:18px;margin:0;}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <div class="tag">Key Information Document</div>
+    <h1>Dynamic Opportunity — Rotation Risk On / Risk Off</h1>
+    <p>Rotation sectorielle &amp; géographique pilotée par un régime de marché lu sur ETF.
+       Actions only (ETF exclus de l'investissable) · 10-20 lignes · univers ACWI · long uniquement.</p>
+  </div>
+
+  <div class="chart-card">
+    <p class="cap">Le <b>score de régime</b> &isin; [&minus;1, +1] : au-dessus du seuil <code>+0.20</code> &rarr;
+       <span style="color:#5ce0a8">Risk On</span> (on penche vers l'offensif) ; en-dessous de <code>&minus;0.20</code> &rarr;
+       <span style="color:#ff7a8a">Risk Off</span> (on penche vers le défensif). Une <b>bascule</b> déclenche un rebalancement le jour même.</p>
+    <div id="chart"></div>
+  </div>
+
+  <div class="chart-card">
+    <p class="cap">Le pipeline en un coup d'&oelig;il : <b>lire la phase de marché</b> &rarr; <b>pencher la grille</b>
+       (secteur &times; r&eacute;gion) &rarr; <b>budg&eacute;ter les cases</b> &rarr; <b>choisir les meilleures actions</b>.
+        R&eacute;-&eacute;valu&eacute; chaque semaine et &agrave; chaque bascule de r&eacute;gime.</p>
+    <svg viewBox="0 0 900 560" width="100%" style="font-family:Inter,sans-serif;">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="4.5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#3a6ea5"/>
+        </marker>
+      </defs>
+      <g text-anchor="middle">
+        <!-- INPUT -->
+        <rect x="40" y="14" width="820" height="40" rx="8" fill="#0e1733" stroke="#1e3f66"/>
+        <text x="450" y="39" fill="#cfe0ff" font-size="13.5">Univers ACWI — actions liquides (USD) &nbsp;+&nbsp; panel d'ETF (lecture du r&eacute;gime, jamais d&eacute;tenus)</text>
+        <line x1="450" y1="55" x2="450" y2="72" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <!-- ETAPE 1 : REGIME -->
+        <rect x="120" y="74" width="660" height="52" rx="8" fill="#0e2540" stroke="#00bfff" stroke-width="1.4"/>
+        <text x="450" y="95" fill="#7cc0ff" font-size="14" font-weight="700">&#9312; R&Eacute;GIME Risk On / Risk Off &nbsp;&middot;&nbsp; score &isin; [&minus;1,+1]</text>
+        <text x="450" y="113" fill="#9fb3d4" font-size="10.5">ETF : momentum large &middot; cycliques/d&eacute;fensifs &middot; courbe &middot; cr&eacute;dit &middot; or &middot; USD &middot; EM/DM &nbsp;(&Eacute;TAPE 1)</text>
+        <line x1="450" y1="127" x2="450" y2="146" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <!-- ETAPE 2 : BAROMETRE -->
+        <rect x="120" y="148" width="660" height="40" rx="8" fill="#0e1530" stroke="#1e3f66"/>
+        <text x="450" y="167" fill="#cfe0ff" font-size="13">&#9313; BAROM&Egrave;TRE &mdash; grille secteur &times; r&eacute;gion, tilt modul&eacute; par le r&eacute;gime</text>
+        <text x="450" y="182" fill="#7f9bc4" font-size="10.5">tilt = biais_statique &times; r&eacute;gime + momentum_z &nbsp;(&Eacute;TAPE 2)</text>
+      </g>
+
+      <!-- offensif vs defensif -->
+      <g text-anchor="middle" font-size="11.5">
+        <rect x="150" y="200" width="270" height="38" rx="8" fill="#10241c" stroke="#5ce0a8"/>
+        <text x="285" y="218" fill="#5ce0a8" font-weight="700">OFFENSIF (Risk On)</text>
+        <text x="285" y="232" fill="#8fc9b0" font-size="9.5">tech &middot; conso cyclique &middot; industrie &middot; mat&eacute;riaux</text>
+        <rect x="480" y="200" width="270" height="38" rx="8" fill="#241318" stroke="#ff7a8a"/>
+        <text x="615" y="218" fill="#ff9aa6" font-weight="700">D&Eacute;FENSIF (Risk Off)</text>
+        <text x="615" y="232" fill="#cf9aa2" font-size="9.5">sant&eacute; &middot; conso de base &middot; utilities</text>
+      </g>
+      <g stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)">
+        <line x1="285" y1="188" x2="285" y2="198"/><line x1="615" y1="188" x2="615" y2="198"/>
+        <line x1="285" y1="239" x2="420" y2="258"/><line x1="615" y1="239" x2="480" y2="258"/>
+      </g>
+
+      <g text-anchor="middle">
+        <!-- ETAPE 3 : BUDGETS -->
+        <rect x="120" y="260" width="660" height="40" rx="8" fill="#0e1530" stroke="#1e3f66"/>
+        <text x="450" y="279" fill="#cfe0ff" font-size="13">&#9314; BUDGETS par cat&eacute;gorie &mdash; &prop; tilt, plafonds cat&eacute;gorie/r&eacute;gion (water-filling)</text>
+        <text x="450" y="294" fill="#7f9bc4" font-size="10.5">&Sigma; = 1 &nbsp;(&Eacute;TAPE 3)</text>
+        <line x1="450" y1="301" x2="450" y2="320" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <!-- ETAPE 4 : SELECTION -->
+        <rect x="120" y="322" width="660" height="52" rx="8" fill="#0e2540" stroke="#00bfff" stroke-width="1.4"/>
+        <text x="450" y="343" fill="#7cc0ff" font-size="14" font-weight="700">&#9315; S&Eacute;LECTION &mdash; fondamental PIT (qualit&eacute;+croissance) + momentum</text>
+        <text x="450" y="361" fill="#9fb3d4" font-size="10.5">10&ndash;20 lignes &middot; budget de cat&eacute;gorie r&eacute;parti &middot; plafond 12 %/position &nbsp;(&Eacute;TAPE 4)</text>
+        <line x1="450" y1="375" x2="450" y2="394" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <!-- PORTEFEUILLE -->
+        <rect x="300" y="396" width="300" height="40" rx="8" fill="#0e2540" stroke="#66ccff" stroke-width="1.5"/>
+        <text x="450" y="421" fill="#cfe0ff" font-size="13.5" font-weight="700">PORTEFEUILLE &mdash; 10 &agrave; 20 actions</text>
+      </g>
+
+      <!-- REBALANCEMENT (cote droit) -->
+      <g text-anchor="middle">
+        <rect x="630" y="460" width="230" height="74" rx="8" fill="#1a1330" stroke="#a98bff"/>
+        <text x="745" y="481" fill="#c9b6ff" font-size="12.5" font-weight="700">Rebalancement hybride</text>
+        <text x="745" y="500" fill="#b9a6e8" font-size="10.5">cadence moteur quotidienne</text>
+        <text x="745" y="515" fill="#b9a6e8" font-size="10.5">ancre hebdo (7 j) <tspan fill="#9fb3d4">OU</tspan></text>
+        <text x="745" y="530" fill="#b9a6e8" font-size="10.5">bascule de r&eacute;gime &rarr; le jour m&ecirc;me</text>
+      </g>
+      <rect x="40" y="460" width="560" height="74" rx="8" fill="#0e1530" stroke="#1e3f66"/>
+      <text x="60" y="483" fill="#9fb3d4" font-size="11">Anti-look-ahead : prix tronqu&eacute;s &agrave; <tspan fill="#bcd6ff">as_of</tspan> &middot; fondamentaux gat&eacute;s par <tspan fill="#bcd6ff">filing_date</tspan></text>
+      <text x="60" y="503" fill="#9fb3d4" font-size="11">R&eacute;gime <tspan fill="#bcd6ff">rules</tspan> causal &middot; ex&eacute;cution diff&eacute;r&eacute;e d'1 barre &middot; d&eacute;list&eacute;s inclus</text>
+      <text x="60" y="523" fill="#9fb3d4" font-size="11">Backtest == production (d&eacute;cision de rebal reconstruite chronologiquement)</text>
+    </svg>
+  </div>
+
+<h1 id="kid-strategie-dynamic-opportunity-key-information-document">KID — Stratégie Dynamic Opportunity (Key Information Document)</h1>
+<blockquote>
+<p>Fiche produit exhaustive de la stratégie de <strong>rotation Risk On / Risk Off</strong> par baromètre
+sectoriel × géographique. Décrit l'état EXACT du code (repo
+<code>quant-portfolio-strat-dynamic-opportunity</code>, branche <code>main</code>), formules incluses.
+Document de référence — rien n'est omis.</p>
+</blockquote>
+<hr />
+<h2 id="1-identite">1. Identité</h2>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nom</td>
+<td>Dynamic Opportunity</td>
+</tr>
+<tr>
+<td>Nature</td>
+<td>Rotation Risk On/Off, <strong>long-only</strong>, actions sélectionnées par catégorie favorisée</td>
+</tr>
+<tr>
+<td>Univers investissable</td>
+<td><strong>Actions uniquement</strong> (ETF EXCLUS de l'investissable), bourses ACWI via env <code>EXCHANGES</code></td>
+</tr>
+<tr>
+<td>Rôle des ETF</td>
+<td><strong>Lecture de marché seulement</strong> (détection de régime) — jamais détenus</td>
+</tr>
+<tr>
+<td>Nb de lignes</td>
+<td><strong>10 à 20</strong> positions</td>
+</tr>
+<tr>
+<td>Devise</td>
+<td>USD (portefeuille) ; ETF de régime lus en USD natif</td>
+</tr>
+<tr>
+<td>Cadence</td>
+<td><strong>Quotidienne</strong> (<code>rebalance_frequency="B"</code>) + <strong>décision de rebal INTERNE</strong> : ancre hebdo (<code>base_rebal_days</code>) <strong>ou</strong> bascule de régime</td>
+</tr>
+<tr>
+<td>Détection régime</td>
+<td>Moteurs <em>pluggables</em> : <code>rules</code> (défaut, causal) · <code>hmm</code> (Gaussian HMM) · <code>causal</code> (stub)</td>
+</tr>
+<tr>
+<td>Plateforme</td>
+<td>Railway (exécution) · Supabase (persistance) · R2/EODHD (données)</td>
+</tr>
+<tr>
+<td>Dépendance</td>
+<td><code>quant-portfolio-base</code> (moteur de backtest, épinglé par hash)</td>
+</tr>
+<tr>
+<td>Tables propres</td>
+<td>aucune — réutilise <code>portfolio_*</code> (partagées, différenciées par <code>strategy_name</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1bis-la-strategie-expliquee-simplement-pour-neophyte">1bis. La stratégie expliquée simplement (pour néophyte)</h2>
+<h3 id="lidee-en-une-phrase">L'idée en une phrase</h3>
+<p>Le marché alterne des phases <strong>« Risk On »</strong> (les investisseurs prennent du risque : les
+secteurs <strong>cycliques/offensifs</strong> — tech, conso discrétionnaire, industrie — montent) et des
+phases <strong>« Risk Off »</strong> (fuite vers la sécurité : les secteurs <strong>défensifs</strong> — santé,
+consommation de base, services aux collectivités — surperforment). On <strong>détecte dans quelle
+phase on est</strong>, on <strong>penche le portefeuille du bon côté</strong>, et dans chaque case favorisée on
+<strong>choisit les meilleures entreprises</strong> par leurs fondamentaux. On ré-ajuste <strong>chaque semaine</strong>,
+et <strong>immédiatement</strong> dès que la phase bascule.</p>
+<h3 id="pourquoi-cest-pertinent-et-comment-on-sy-prend">Pourquoi c'est pertinent (et comment on s'y prend)</h3>
+<p>Les rotations sectorielles sont une régularité bien documentée du cycle. Le défi est
+<strong>double</strong> : (1) reconnaître la phase <strong>sans regarder l'avenir</strong>, et (2) traduire « on est en
+Risk On » en un portefeuille concret de 10-20 actions. On résout (1) avec un <strong>thermomètre de
+marché</strong> lu sur des ETF (instruments larges, liquides, sans biais de sélection), et (2) avec un
+<strong>baromètre</strong> en grille (secteur × région) puis une <strong>analyse fondamentale</strong> des candidats.</p>
+<h3 id="le-parcours-etape-par-etape-le-fil-rouge">Le parcours, étape par étape (le fil rouge)</h3>
+<ol>
+<li>
+<p><strong>Revue de marché</strong> (<code>ÉTAPE 1</code>). On calcule un <strong>score de régime ∈ [−1, +1]</strong> (+1 = Risk On
+   franc, −1 = Risk Off franc) à partir de plusieurs « capteurs » de marché sur ETF : le
+   marché monte-t-il ? les cycliques battent-ils les défensives ? le crédit risqué
+   surperforme-t-il ? l'or et le dollar (refuges) montent-ils ? <em>Lien :</em> ce score unique
+   <strong>oriente tout le reste</strong>.</p>
+</li>
+<li>
+<p><strong>Le baromètre</strong> (<code>ÉTAPE 2</code>). On dresse une grille : en lignes les <strong>catégories</strong>
+   (secteur × région : Amérique du Nord, Europe, Asie développée, émergents), en colonnes
+   <strong>défensif / neutre / offensif</strong>. Chaque case reçoit un <strong>tilt</strong> = (sa nature offensive ou
+   défensive <strong>× le score de régime</strong>) + (sa <strong>force relative</strong> récente). <em>Lien :</em> en Risk On
+   les cases offensives s'allument ; en Risk Off, les défensives.</p>
+</li>
+<li>
+<p><strong>La traduction en budgets</strong> (<code>ÉTAPE 3</code>). On retient les meilleures cases et on leur donne
+   un <strong>budget</strong> (% du portefeuille) proportionnel à leur tilt, en respectant des <strong>plafonds</strong>
+   par case et par région (diversification). <em>Lien :</em> on passe d'un classement de cases à une
+   allocation chiffrée.</p>
+</li>
+<li>
+<p><strong>Le choix des actions</strong> (<code>ÉTAPE 4</code>). Dans chaque case dotée d'un budget, on <strong>classe les
+   entreprises</strong> par un score <strong>fondamental</strong> (rentabilité + croissance, calculé <em>point-in-time</em>
+   pour ne pas tricher) <strong>+ momentum</strong> de prix, et on garde les meilleures jusqu'à atteindre
+   <strong>10-20 lignes</strong>. <em>Lien :</em> le budget d'une case est réparti entre ses meilleures actions.</p>
+</li>
+</ol>
+<h3 id="le-rythme-hebdo-quotidien">Le rythme (hebdo + quotidien)</h3>
+<p>On recalcule la cible <strong>chaque semaine</strong>. Mais on <strong>surveille le régime tous les jours</strong> : si
+la phase <strong>bascule</strong> (Risk On→Off ou l'inverse) un mardi, on <strong>ne attend pas</strong> le lundi
+suivant — on rebalance <strong>le jour même</strong>. Entre deux décisions, le portefeuille <strong>dérive
+naturellement</strong> (le moteur gère).</p>
+<blockquote>
+<p><strong>En résumé</strong> : <em>lire la phase de marché → pencher la grille → budgéter les cases →
+choisir les meilleures actions ; ré-évaluer chaque semaine et à chaque bascule.</em></p>
+</blockquote>
+<hr />
+<h2 id="2-fondement-theorique">2. Fondement théorique</h2>
+<h3 id="21-le-cycle-risk-on-risk-off-et-la-rotation-sectorielle">2.1 Le cycle Risk On / Risk Off et la rotation sectorielle</h3>
+<p>En régime d'appétit pour le risque (<strong>Risk On</strong>), les actifs risqués et les secteurs
+<strong>cycliques</strong> (Technology, Consumer Cyclical, Industrials, Basic Materials, Energy, Financials)
+surperforment ; en <strong>Risk Off</strong>, les capitaux refluent vers les <strong>défensifs</strong> (Consumer
+Defensive, Utilities, Healthcare) et les refuges (or, USD, duration longue). Cette alternance
+est captée par des <strong>signaux market-based</strong> observables sur ETF (pas de fondamental retardé).</p>
+<h3 id="22-le-barometre-comme-transcription-du-regime">2.2 Le baromètre comme transcription du régime</h3>
+<p>Chaque secteur a un <strong>biais statique</strong> sur l'axe défensif(−1)↔offensif(+1). Multiplié par le
+score de régime, il donne la direction du tilt ; on y ajoute la <strong>force relative dynamique</strong>
+(momentum du panier de la catégorie) pour capter la rotation <strong>déjà en cours</strong>. La grille
+secteur × région évite la dominance d'une seule géographie.</p>
+<h3 id="23-these-dinvestissement">2.3 Thèse d'investissement</h3>
+<blockquote>
+<p>On ne prédit pas le marché, on <strong>s'aligne sur sa phase</strong>. Le régime (étape 1) décide du
+<em>côté</em> (offensif vs défensif) ; le baromètre (étape 2-3) décide de <em>quelles cases</em> ; les
+fondamentaux (étape 4) décident de <em>quelles actions</em> dans ces cases. Le portefeuille reste
+concentré (10-20 noms), diversifié par région, et réactif (rebal hebdo + sur bascule).</p>
+</blockquote>
+<hr />
+<h2 id="3-donnees-input">3. Données (INPUT)</h2>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source</td>
+<td>R2 Cloudflare (Parquet) / Supabase, alimentés par EODHD via le repo ETL</td>
+</tr>
+<tr>
+<td>Prix actions</td>
+<td>univers ACWI, <code>Common Stock</code> ; convertis en <strong>USD</strong> ; filtre 252 obs min</td>
+</tr>
+<tr>
+<td>ETF de régime</td>
+<td>~18 ETF US (SPY, secteurs SPDR, TLT/IEF, HYG/LQD, GLD, UUP, EEM/EFA), USD natif</td>
+</tr>
+<tr>
+<td>Métadonnées</td>
+<td><code>raw.tickers</code> : <strong>secteur</strong>, industrie, <strong>pays</strong>, type, ISIN → catégorie = secteur | région</td>
+</tr>
+<tr>
+<td>Fondamentaux</td>
+<td><strong><code>raw.financial_statements</code></strong> (annuel), filtré par <strong><code>filing_date ≤ as_of</code></strong> (PIT-safe)</td>
+</tr>
+<tr>
+<td>Anti-look-ahead</td>
+<td>prix tronqués à <code>as_of</code> ; fondamentaux gated par <code>filing_date</code> ; régime causal (rules)</td>
+</tr>
+<tr>
+<td>Anti-survivorship</td>
+<td><code>include_delisted: true</code> (titres délistés présents de leur vivant)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ On n'utilise <strong>jamais</strong> <code>raw.fundamentals_snapshot</code> au backtest (il ne contient que le
+DERNIER état connu → look-ahead). La source PIT est <code>financial_statements</code> (<code>filing_date</code>).</p>
+</blockquote>
+<hr />
+<h2 id="4-process-le-pipeline-etape-par-etape">4. PROCESS — le pipeline, étape par étape</h2>
+<p>Branché sur le moteur de la base via <code>rotation/runner.py:build_optimizer_fn</code> →
+<code>optimizer_fn(hist_prices, params) → pd.Series(poids)</code>. <code>hist_prices</code> est tronqué à <code>as_of</code>
+(aucun look-ahead). Le contexte (panel ETF, métadonnées, accès fondamental) est <strong>pré-chargé
+une fois</strong>.</p>
+<h3 id="etape-0-reduction-de-lunivers-liquidite-stratifiee-par-bourse">ÉTAPE 0 — Réduction de l'univers (liquidité, STRATIFIÉE par bourse)</h3>
+<pre><code>score = moyenne( prix × volume ) sur adtv_lookback_days (63 j)         [metric = adtv]
+univers retenu = top_n_per_exchange (100) titres les + liquides PAR BOURSE
+garde-fou mémoire = max_per_exchange (200) titres/bourse  (anti-OOM, mode PIT)
+</code></pre>
+<p>→ diversification géographique, pas de domination US. <em>(fait par le moteur de la base.)</em></p>
+<h3 id="etape-1-revue-de-marche-detection-de-regime-rotationregimepy">ÉTAPE 1 — Revue de marché / détection de régime (<code>rotation/regime.py</code>)</h3>
+<p>Score continu <strong>∈ [−1, +1]</strong> lu sur le panel d'ETF tranché à <code>as_of</code>. Moteur <code>rules</code> (défaut) :
+chaque sous-signal est borné par <code>tanh</code> d'un <strong>z-score glissant</strong> d'un <strong>momentum multi-horizon</strong>
+(<code>lookbacks=[21,63,126]</code>, fenêtre z = 252 j), puis combiné en moyenne pondérée et <strong>lissé EWM</strong>
+(<code>halflife=5</code>).</p>
+<pre><code>sous-signal(x)   = moyenne_lb[ tanh( zscore_252( x/x.shift(lb) − 1 ) ) ]
+broad_momentum   = sous-signal( SPY )
+cyc_def_ratio    = sous-signal( panier_cycliques / panier_défensifs )
+curve            = sous-signal( IEF / TLT )       (bons courts &gt; longs = taux ↑ = Risk On)
+credit           = sous-signal( HYG / LQD )       (HY &gt; IG = Risk On)
+em_dm            = sous-signal( EEM / EFA )        (EM &gt; DM = Risk On)
+gold             = − sous-signal( GLD )            (or fort = Risk Off)
+usd              = − sous-signal( UUP )            (USD fort = Risk Off)
+
+score = EWM_halflife( Σ_i w_i·sous-signal_i / Σ_i w_i )   ∈ [−1, +1]   (clip)
+label = risk_on  si score ≥ on_threshold (0.20)
+        risk_off si score ≤ off_threshold (−0.20)
+        neutral  sinon
+</code></pre>
+<blockquote>
+<p>Le moteur <code>rules</code> est <strong>strictement causal</strong> (rolling/EWM) → PIT-safe, la série complète peut
+être pré-calculée. Les ETF absents en base sont ignorés (poids renormalisés). Moteurs
+alternatifs : <code>hmm</code> (Gaussian HMM 3 états sur rendement/vol/cyc-def, états mappés sur l'axe
+par leur rendement latent) et <code>causal</code> (stub → repli <code>rules</code>).</p>
+</blockquote>
+<h3 id="etape-2-barometre-categorie-defensifneutreoffensif-rotationbarometerpy">ÉTAPE 2 — Baromètre catégorie × {défensif/neutre/offensif} (<code>rotation/barometer.py</code>)</h3>
+<p>Lignes = <strong>catégories</strong> (secteur GICS × région ∈ {NA, EU, ADM, EM}). Pour chaque catégorie
+présente (≥ <code>min_names_per_cat</code> = 3 titres dans l'univers courant) :</p>
+<pre><code>biais_statique  = SECTOR_BIAS[secteur]               ∈ [−1, +1]  (offensif&gt;0, défensif&lt;0)
+momentum_cat    = moyenne des ( prix/prix.shift(126) − 1 ) des titres de la catégorie
+momentum_z      = zscore_cross-section( momentum_cat )    (clip ±3)
+
+tilt  = w_s · (biais_statique × score_régime) + w_m · momentum_z       (w_s=w_m=0.5)
+label = offensif si tilt &gt; 0.15 ; défensif si tilt &lt; −0.15 ; neutre sinon
+</code></pre>
+<blockquote>
+<p>Modulation par le régime : en Risk On (<code>score&gt;0</code>), les secteurs offensifs (<code>biais&gt;0</code>)
+obtiennent un tilt positif ; en Risk Off (<code>score&lt;0</code>), ce sont les défensifs (<code>biais&lt;0</code>,
+car <code>biais×score&gt;0</code>). Le momentum capte la rotation déjà engagée.</p>
+</blockquote>
+<h3 id="etape-3-budgets-cibles-par-categorie-rotationallocationpy">ÉTAPE 3 — Budgets cibles par catégorie (<code>rotation/allocation.py</code>)</h3>
+<pre><code>chosen   = top alloc_top_categories (8) catégories à tilt &gt; 0 (sinon les moins négatives)
+w_brut   ∝ tilt (décalé positif si nécessaire)
+Σw = 1, PLAFONDS appliqués par WATER-FILLING (préserve Σ=1) :
+     • par catégorie : w_i ≤ alloc_max_per_category (0.25)
+     • par région    : Σ_région ≤ alloc_max_per_region (0.50)
+</code></pre>
+<blockquote>
+<p>Le <strong>water-filling</strong> redistribue l'excédent écrêté aux items sous le plafond
+(itératif) → respecte les plafonds <strong>sans</strong> re-violer par renormalisation naïve.</p>
+</blockquote>
+<h3 id="etape-4-analyse-des-positions-poids-finaux-rotationselectionpy">ÉTAPE 4 — Analyse des positions &amp; poids finaux (<code>rotation/selection.py</code>)</h3>
+<p>Candidats = titres des catégories dotées d'un budget, présents dans le panel.</p>
+<pre><code>momentum_z  = zscore( prix/prix.shift(126) − 1 ) sur les candidats
+fund_z      = composite fondamental PIT (cf. ci-dessous), z-scoré (ou absent → momentum seul)
+score       = w_f · fund_z + w_m · momentum_z       (w_f=w_m=0.5)
+
+# nb de lignes par catégorie : ∝ budget, plancher 1, plafond = candidats dispo,
+# total ∈ [target_positions_min (10), target_positions_max (20)]  (largest remainder)
+poids_i     = budget_catégorie / nb_lignes_retenues_dans_la_catégorie   (réparti égal)
+poids       = water-filling( poids , max_position_weight (0.12) ) ;  Σ = 1
+</code></pre>
+<p><strong>Composite fondamental PIT</strong> (<code>rotation/data_fundamentals.py</code>, depuis <code>financial_statements</code>,
+<code>filing_date ≤ as_of</code>, 2 derniers exercices annuels) :</p>
+<pre><code>roe = netIncome/equity   roa = netIncome/totalAssets   net_margin = netIncome/totalRevenue
+rev_growth = revenue_t/revenue_{t-1} − 1   ni_growth = netIncome_t/netIncome_{t-1} − 1
+composite = moyenne des z-scores cross-section des métriques disponibles
+</code></pre>
+<blockquote>
+<p>Repli <strong>momentum seul</strong> si aucun fondamental filé à cette date (cold-start, marchés à
+couverture fondamentale faible). <code>fundamentals_snapshot</code> réservé au portefeuille <strong>live</strong>.</p>
+</blockquote>
+<h3 id="etape-5-decision-de-rebalancement-hybride-rotationrunnerpy">ÉTAPE 5 — Décision de rebalancement HYBRIDE (<code>rotation/runner.py</code>)</h3>
+<p>Le moteur appelle l'optimiseur <strong>chaque jour</strong> (<code>rebalance_frequency="B"</code>). Un <strong>cache d'état</strong>
+(<code>weights</code>, <code>last_rebal</code>, <code>last_label</code>) décide du rebal RÉEL :</p>
+<pre><code>flip = (label_du_jour ≠ label_au_dernier_rebal)
+due  = (premier appel) OU (jours écoulés depuis last_rebal ≥ base_rebal_days (7)) OU flip
+si NON due  → renvoie les poids cachés  (le moteur gère le drift)
+si due      → exécute ÉTAPES 2→4, met à jour le cache
+</code></pre>
+<blockquote>
+<p>→ <strong>hebdo</strong> (ancre <code>base_rebal_days</code>) <strong>+ quotidien</strong> (déclenchement sur bascule de régime),
+SANS modifier le moteur partagé (même principe que les autres strats à rebal dynamique).</p>
+</blockquote>
+<hr />
+<h2 id="5-parametres-reference-valeurs-actuelles">5. Paramètres (référence — valeurs actuelles)</h2>
+<h3 id="univers-rebalancement">Univers &amp; rebalancement</h3>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Val</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>security_types</code></td>
+<td><code>[Common Stock]</code></td>
+<td>actions only (ETF exclus de l'investissable)</td>
+</tr>
+<tr>
+<td><code>universe.exchanges</code></td>
+<td>18 bourses ACWI</td>
+<td>NA + EU + Asie dév. + émergents (env <code>EXCHANGES</code>)</td>
+</tr>
+<tr>
+<td><code>portfolio_currency</code></td>
+<td>USD</td>
+<td>devise du portefeuille</td>
+</tr>
+<tr>
+<td><code>universe_filter.method</code> / <code>metric</code></td>
+<td><code>top_n_per_exchange</code> / <code>adtv</code></td>
+<td>liquidité stratifiée/bourse</td>
+</tr>
+<tr>
+<td><code>top_n_per_exchange</code> / <code>max_per_exchange</code></td>
+<td>100 / 200</td>
+<td>titres/bourse · garde-fou mémoire</td>
+</tr>
+<tr>
+<td><code>rebalance_frequency</code></td>
+<td><code>B</code></td>
+<td>cadence moteur quotidienne (décision réelle = interne)</td>
+</tr>
+<tr>
+<td><code>base_rebal_days</code></td>
+<td>7</td>
+<td>ancre calendaire du rebal interne (7 = hebdo)</td>
+</tr>
+<tr>
+<td><code>data_access</code></td>
+<td><code>pit</code></td>
+<td>point-in-time (ACWI très large → anti-OOM ; nécessite R2)</td>
+</tr>
+<tr>
+<td><code>start_date</code> / <code>start_date_data</code></td>
+<td>2015-01-02 / 2010-01-04</td>
+<td>décisions / historique chargé</td>
+</tr>
+</tbody>
+</table>
+<h3 id="regime-etape-1">Régime (ÉTAPE 1)</h3>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Val</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regime_method</code></td>
+<td><code>rules</code></td>
+<td><code>rules</code> (causal) / <code>hmm</code> / <code>causal</code> (stub)</td>
+</tr>
+<tr>
+<td><code>regime_lookbacks</code></td>
+<td><code>[21,63,126]</code></td>
+<td>horizons de momentum des sous-signaux</td>
+</tr>
+<tr>
+<td><code>regime_zwindow</code></td>
+<td>252</td>
+<td>fenêtre du z-score glissant</td>
+</tr>
+<tr>
+<td><code>regime_smooth_halflife</code></td>
+<td>5</td>
+<td>lissage EWM du score composite</td>
+</tr>
+<tr>
+<td><code>regime_on_threshold</code> / <code>regime_off_threshold</code></td>
+<td>0.20 / −0.20</td>
+<td>seuils des labels</td>
+</tr>
+<tr>
+<td><code>regime_weights</code></td>
+<td>broad 1.0, cyc_def 1.0, credit 0.8, curve 0.6, em_dm 0.5, gold 0.4, usd 0.4</td>
+<td>pondération des sous-signaux (renormalisée sur les dispos)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="barometre-allocation-etapes-2-3">Baromètre &amp; allocation (ÉTAPES 2-3)</h3>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Val</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>barometer_momentum_lookback</code></td>
+<td>126</td>
+<td>force relative des catégories</td>
+</tr>
+<tr>
+<td><code>barometer_static_weight</code> / <code>barometer_momentum_weight</code></td>
+<td>0.5 / 0.5</td>
+<td>poids biais×régime vs momentum</td>
+</tr>
+<tr>
+<td><code>barometer_min_names_per_cat</code></td>
+<td>3</td>
+<td>catégorie ignorée si trop peu de titres</td>
+</tr>
+<tr>
+<td><code>alloc_top_categories</code></td>
+<td>8</td>
+<td>nb de catégories retenues</td>
+</tr>
+<tr>
+<td><code>alloc_max_per_category</code> / <code>alloc_max_per_region</code></td>
+<td>0.25 / 0.50</td>
+<td>plafonds (water-filling)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="selection-etape-4">Sélection (ÉTAPE 4)</h3>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Val</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target_positions_min</code> / <code>target_positions_max</code></td>
+<td>10 / 20</td>
+<td>bornes du nb de lignes</td>
+</tr>
+<tr>
+<td><code>selection_fundamental_weight</code> / <code>selection_momentum_weight</code></td>
+<td>0.5 / 0.5</td>
+<td>poids du composite</td>
+</tr>
+<tr>
+<td><code>selection_momentum_lookback</code></td>
+<td>126</td>
+<td>momentum prix des candidats</td>
+</tr>
+<tr>
+<td><code>max_position_weight</code></td>
+<td>0.12</td>
+<td>plafond par position (water-filling)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="couts-moteur-de-la-base">Coûts (moteur de la base)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coûts</td>
+<td>Swissquote : commissions par paliers + spread bid-ask + droit de timbre <strong>CH 7.5 bps / étranger 15 bps</strong> + <strong>coût de change FX 20 bps</strong> (cotation ≠ USD) + <code>min_trade_pct</code> 0.5%</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-output-persistance-supabase">6. OUTPUT &amp; persistance (Supabase)</h2>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Schéma</th>
+<th>Contenu</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>portfolio_performance</code></td>
+<td>portfolio</td>
+<td>NAV, return quotidien/cumulé, drawdown</td>
+<td>recalculée chaque run</td>
+</tr>
+<tr>
+<td><code>portfolio_positions</code></td>
+<td>portfolio</td>
+<td>poids détenus par date</td>
+<td>recalculée</td>
+</tr>
+<tr>
+<td><code>portfolio_analytics</code></td>
+<td>portfolio</td>
+<td>Sharpe, vol, max DD, return annualisé</td>
+<td>recalculée</td>
+</tr>
+<tr>
+<td><code>backtest_runs</code></td>
+<td>portfolio</td>
+<td>métadonnées du run</td>
+<td>recalculée</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Aucune table propriétaire : la stratégie est <strong>sans état persistant propre</strong> (le cache de
+rebalancement est en mémoire, reconstruit par la boucle chronologique → backtest == prod).
+Tables <code>portfolio_*</code> partagées avec les autres stratégies (différenciées par <code>strategy_name</code>,
+ex. <code>DynamicOpportunity_ACWI_rules_USD_B_Portfolio</code>).</p>
+</blockquote>
+<hr />
+<h2 id="7-architecture-coherence-points-structurants">7. Architecture &amp; cohérence (points structurants)</h2>
+<ol>
+<li><strong>Closure à état</strong> (<code>build_optimizer_fn</code>) : le panel ETF, les métadonnées et l'accès
+   fondamental sont chargés <strong>une fois</strong> ; le cache de rebalancement vit dans la closure.</li>
+<li><strong>Pas de look-ahead</strong> : <code>as_of = prices.index[-1]</code> ; régime <code>rules</code> causal ; fondamentaux
+   gated par <code>filing_date</code> ; exécution différée d'1 barre (défaut du moteur).</li>
+<li><strong>Backtest == production</strong> : la décision de rebal (ancre + flip) est reconstruite par la
+   boucle chronologique, identique en backtest et en cron.</li>
+<li><strong>Autonomie vs la base</strong> : aucune modification du moteur partagé n'est requise — le
+   rebalancement hybride est interne (pattern des strats à rebal dynamique). La base est
+   épinglée par hash dans <code>requirements.txt</code>.</li>
+<li><strong>Dégradation gracieuse</strong> : ETF de régime manquants → poids renormalisés ; fondamentaux
+   absents → momentum seul ; catégorie trop creuse → ignorée.</li>
+</ol>
+<hr />
+<h2 id="7ter-chronologie-dexecution-ordre-exact-du-code">7ter. Chronologie d'exécution (ordre exact du code)</h2>
+<p><strong>SETUP (une fois, <code>RotationContext.build</code>)</strong>
+- <strong>S1</strong> — Lecture <code>params.yaml</code> + overrides d'environnement (<code>config_overrides</code>).
+- <strong>S2</strong> — Chargement du <strong>panel ETF de régime</strong> (USD) tranchable PIT.
+- <strong>S3</strong> — Chargement des <strong>métadonnées titres</strong> (<code>raw.tickers</code> : secteur/pays → catégorie).
+- <strong>S4</strong> — Instanciation du <strong>moteur de régime</strong> + <strong>pré-calcul de la série</strong> (rules = causal).
+- <strong>S5</strong> — Instanciation de l'<strong>accès fondamental PIT</strong> (si <code>selection_fundamental_weight&gt;0</code>).</p>
+<p><strong>BOUCLE — pour CHAQUE jour <code>as_of</code></strong> <em>(moteur de la base, cadence <code>B</code>)</em>
+- <strong>B0</strong> — <code>filter_universe</code> : top 100/bourse par ADTV ; <code>hist_prices</code> tronqué à <code>as_of</code>.
+- <strong>B1</strong> <em>(runner)</em> — <strong>score de régime</strong> lu à <code>as_of</code> ; <code>label</code> ; calcul de <code>flip</code> / <code>due</code>.
+- <strong>B2</strong> — si <strong>non due</strong> → renvoie les <strong>poids cachés</strong> (fin de l'appel).
+- <strong>B3</strong> — si <strong>due</strong> : <strong>baromètre</strong> (ÉTAPE 2) sur l'univers courant + score de régime.
+- <strong>B4</strong> — <strong>budgets</strong> par catégorie (ÉTAPE 3, water-filling sous plafonds).
+- <strong>B5</strong> — <strong>composite fondamental PIT</strong> des candidats (<code>financial_statements</code>, <code>filing_date≤as_of</code>).
+- <strong>B6</strong> — <strong>sélection</strong> (ÉTAPE 4) : 10-20 lignes, budgets répartis, plafond par position.
+- <strong>B7</strong> — mise à jour du cache (<code>weights</code>, <code>last_rebal=as_of</code>, <code>last_label</code>) ; log du rebal.</p>
+<p><strong>FIN DE RUN</strong> — <code>save_backtest_results</code> → <code>portfolio_performance/positions/analytics</code>
+(même record que la production → une seule courbe continue).</p>
+<hr />
+<h2 id="8-modes-dexecution-workflow">8. Modes d'exécution &amp; workflow</h2>
+<table>
+<thead>
+<tr>
+<th><code>RUN_MODE</code></th>
+<th>Script</th>
+<th>Rôle</th>
+<th>Fréquence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>backtest</code></td>
+<td><code>run_backtest.py</code></td>
+<td>backtest d'amorçage + sauvegarde (<code>--dry-run</code>, <code>--no-costs</code>)</td>
+<td>manuel, one-shot</td>
+</tr>
+<tr>
+<td><code>portfolio</code></td>
+<td><code>run_daily_portfolio.py</code></td>
+<td>production : run + mise à jour positions/perf</td>
+<td>cron quotidien</td>
+</tr>
+<tr>
+<td><code>track_record</code></td>
+<td>(base)</td>
+<td>suivi de la perf du portefeuille réel</td>
+<td>cron quotidien</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sequence-de-deploiement">Séquence de déploiement</h3>
+<pre><code>1. python -m rotation.check_coverage  → valider ETF de régime + profondeur financial_statements
+2. RUN_MODE=backtest (--dry-run)       → amorçage, vérifier Sharpe/DD
+3. RUN_MODE=backtest                   → sauvegarde de la courbe de référence
+4. Ablation (env)                      → REGIME_METHOD, SELECTION_FUNDAMENTAL_WEIGHT, seuils
+5. RUN_MODE=portfolio                  → cron quotidien : prolonge la même courbe
+</code></pre>
+<h3 id="lien-avec-la-base">Lien avec la base</h3>
+<p><code>requirements.txt</code> épingle <code>quant-portfolio-base</code> à un commit. Le workflow
+<code>.github/workflows/update-base-hash.yml</code> (déclenché par dispatch <code>base-updated</code>) réécrit ce
+hash automatiquement à chaque mise à jour de la base.</p>
+<h3 id="overrides-denvironnement-config_overridespy">Overrides d'environnement (<code>config_overrides.py</code>)</h3>
+<p><code>UNIVERSE_NAME</code>, <code>EXCHANGES</code>, <code>PORTFOLIO_CURRENCY</code>, <code>SOURCE</code>, <code>DATA_ACCESS</code>,
+<code>REBALANCE_FREQUENCY</code>, <code>START_DATE</code>, <code>STRATEGY_NAME</code>/<code>STRATEGY_VARIANT</code>, <code>REGIME_METHOD</code>,
+<code>BASE_REBAL_DAYS</code>, <code>TARGET_POSITIONS_MIN/MAX</code>, <code>MAX_POSITION_WEIGHT</code>,
+<code>SELECTION_FUNDAMENTAL_WEIGHT</code>, <code>REGIME_ON/OFF_THRESHOLD</code>.</p>
+<hr />
+<h2 id="9-limites-connues">9. Limites connues</h2>
+<table>
+<thead>
+<tr>
+<th>Sujet</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Couverture fondamentale</strong></td>
+<td>dépend de la profondeur de <code>raw.financial_statements</code> (<code>filing_date</code>) ; faible historique ⇒ étape 4 dégrade vers momentum seul. Vérifier via <code>rotation.check_coverage</code>.</td>
+</tr>
+<tr>
+<td><strong>HMM / causal</strong></td>
+<td><code>hmm</code> : la série de régime est pré-calculée plein-échantillon → léger look-ahead sur le <strong>timing des bascules</strong> (préférer la cadence hebdo). <code>causal</code> = stub (repli <code>rules</code>) → phase 2.</td>
+</tr>
+<tr>
+<td><strong>Couverture ETF de régime</strong></td>
+<td>suppose les ETF SPDR/US syncés (<code>type='ETF'</code>) ; manquants → signaux renormalisés (régime moins riche).</td>
+</tr>
+<tr>
+<td><strong>Granularité baromètre</strong></td>
+<td>secteur × 4 régions (pragmatique) ; pays × secteur trop creux sur ACWI.</td>
+</tr>
+<tr>
+<td><strong>Biais statique sectoriel</strong></td>
+<td><code>SECTOR_BIAS</code> posé à dire d'expert (offensif/défensif) ; non optimisé.</td>
+</tr>
+<tr>
+<td><strong>Seuils régime / pondérations</strong></td>
+<td><code>on/off_threshold</code>, <code>regime_weights</code>, poids baromètre/sélection = heuristiques, non walk-forward (risque de sur-apprentissage si calibrés trop tôt).</td>
+</tr>
+<tr>
+<td><strong>Turnover</strong></td>
+<td>cadence <code>B</code> + recomputation à chaque ancre/flip → churn potentiel (atténué par <code>min_trade_pct</code> 0.5% + renvoi des poids cachés hors rebal).</td>
+</tr>
+<tr>
+<td><strong>Long-only</strong></td>
+<td>pas de short des secteurs en disgrâce ; en Risk Off on se contente du défensif.</td>
+</tr>
+<tr>
+<td><strong>Portefeuille live</strong></td>
+<td>valorisation/valeur via <code>fundamentals_snapshot</code> non encore branchée (uniquement backtest PIT pour l'instant).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9bis-conformite-academique-institutionnelle">9bis. Conformité académique &amp; institutionnelle</h2>
+<p><strong>Académique</strong> — la chaîne reprend des régularités documentées :
+| Élément | Référence (esprit) |
+|---|---|
+| Cycle Risk On/Off &amp; rotation sectorielle | sector rotation / business-cycle investing (Stovall ; Conover et al.) |
+| Spreads de crédit &amp; courbe comme signaux de régime | term spread / credit spread predictors (Estrella &amp; Hardouvelis ; Gilchrist &amp; Zakrajšek) |
+| Momentum cross-section (force relative des catégories) | Jegadeesh &amp; Titman (1993) ; Moskowitz &amp; Grinblatt (1999) |
+| Régimes latents (option HMM) | Hamilton (1989) regime-switching |
+| Qualité / croissance (composite fondamental) | quality factor (Asness, Frazzini &amp; Pedersen) |</p>
+<p><strong>Institutionnel</strong> — bonnes pratiques de production :
+- <strong>Pas de look-ahead</strong> : prix tronqués à <code>as_of</code> ; fondamentaux gated par <code>filing_date</code>
+  (jamais <code>fundamentals_snapshot</code>) ; régime <code>rules</code> causal ; exécution différée d'1 barre.
+- <strong>Anti-survivorship</strong> : <code>include_delisted: true</code> ; garde-fou mémoire stratifié par bourse.
+- <strong>Backtest == production</strong> : décision de rebal reconstruite par la boucle chronologique.
+- <strong>Coûts réels conservateurs</strong> (Swissquote : paliers, spread, droit de timbre CH/étranger,
+  FX 20 bps, <code>min_trade</code> 0.5%).
+- <strong>Diversification</strong> : plafonds par catégorie et par région ; filtre liquidité stratifié.
+- <strong>Reproductibilité</strong> : moteurs déterministes (HMM seedé) ; aucune dépendance à un état caché
+  non reconstructible.
+- <strong>Ablation</strong> : régime / poids fondamental / seuils togglables par variable d'env.</p>
+<hr />
+<h2 id="10-resume-en-une-page">10. Résumé en une page</h2>
+<pre><code>ENTRÉE     : actions ACWI liquides (USD, filtre stratifié/bourse) + panel ETF (lecture régime)
+ÉTAPE 1    : RÉGIME ∈[−1,+1] via ETF (momentum large, cyc/déf, courbe, crédit, or, USD, EM/DM),
+             causal (rules) → label risk_on / risk_off / neutral
+ÉTAPE 2    : BAROMÈTRE catégorie (secteur×région) → tilt = biais_statique×régime + momentum_z
+ÉTAPE 3    : BUDGETS par catégorie ∝ tilt, water-filling sous plafonds catégorie/région
+ÉTAPE 4    : SÉLECTION — composite fondamental PIT (qualité+croissance) + momentum → 10-20 lignes
+             budget de catégorie réparti ; plafond 12%/position ; Σ=1
+REBAL      : cadence moteur QUOTIDIENNE ; décision INTERNE = ancre hebdo (7j) OU bascule régime
+RISQUE     : long-only, diversifié (plafonds région/catégorie), réactif aux bascules
+PERSIST.   : portfolio_* (perf, 1 courbe) — aucune table propriétaire
+ARCHI      : closure à état ; backtest == production ; AUTONOME vis-à-vis du moteur (pas de hook)
+INFRA      : Railway (backtest one-shot + cron portfolio) | base épinglée par hash | données R2/EODHD
+ANTI-BIAIS : as_of-tronqué · filing_date (PIT) · delisted inclus · exécution différée 1 barre
+</code></pre>
+</div>
+
+<script>
+// Courbe illustrative du score de régime ∈ [-1,1] : somme de sinusoïdes lissée.
+(function(){
+  var data=[], on=[], off=[], t, s;
+  for(t=0;t<=120;t+=1){
+    s = 0.55*Math.sin(t/13) + 0.30*Math.sin(t/5+1.0) + 0.18*Math.sin(t/29);
+    s = Math.max(-1,Math.min(1,s));
+    data.push([t, +s.toFixed(3)]);
+  }
+  Highcharts.chart('chart',{
+    chart:{backgroundColor:'transparent',style:{fontFamily:'Inter,sans-serif'}},
+    title:{text:null}, credits:{enabled:false}, legend:{enabled:false},
+    xAxis:{title:{text:'temps',style:{color:'#9fb3d4'}},labels:{style:{color:'#9fb3d4'}},
+      gridLineColor:'#13234a',lineColor:'#1e3f66',tickColor:'#1e3f66'},
+    yAxis:{title:{text:'score de régime',style:{color:'#9fb3d4'}},labels:{style:{color:'#9fb3d4'}},
+      min:-1.1,max:1.1,gridLineColor:'#13234a',
+      plotLines:[
+        {color:'#5ce0a8',width:1.2,value:0.20,dashStyle:'Dash',label:{text:' Risk On (+0.20)',style:{color:'#5ce0a8'},y:-4}},
+        {color:'#ff7a8a',width:1.2,value:-0.20,dashStyle:'Dash',label:{text:' Risk Off (−0.20)',style:{color:'#ff7a8a'},y:14}},
+        {color:'#3a6ea5',width:1,value:0}
+      ]},
+    tooltip:{backgroundColor:'#0e1530',borderColor:'#1e3f66',style:{color:'#e8eefc'},
+      formatter:function(){return 'score : <b>'+this.y.toFixed(2)+'</b>';}},
+    plotOptions:{series:{marker:{enabled:false}}},
+    series:[{
+      type:'line',data:data,lineWidth:2.4,
+      zoneAxis:'y',
+      zones:[{value:-0.20,color:'#ff7a8a'},{value:0.20,color:'#ffcf6b'},{color:'#5ce0a8'}]
+    }]
+  });
+})();
+</script>
+</body>
+</html>
