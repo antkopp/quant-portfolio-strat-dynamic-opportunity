@@ -1,4 +1,4 @@
-git+https://github.com/antkopp/quant-portfolio-base.git@2293bfbe4f3abf5bc105e6193b09152068e5971b
+git+https://github.com/antkopp/quant-portfolio-base.git@cbdaf7a6a6aefefa2f86aa2546a283b0428ef61d
 numpy
 pandas
 scipy
