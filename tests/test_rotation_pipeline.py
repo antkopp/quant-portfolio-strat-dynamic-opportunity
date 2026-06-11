@@ -125,6 +125,31 @@ def test_selection_caps_and_count():
     assert (w <= 0.12 + 1e-9).all()
 
 
+def test_selection_excludes_data_glitch():
+    """Garde-fous données : un titre au saut journalier extrême (prix corrompu) est
+    EXCLU (sinon le momentum le choisit et sa rampe fait exploser le NAV)."""
+    from rotation.selection import select_positions
+    syms = [f"G{i}.US" for i in range(6)] + [f"B{i}.US" for i in range(6)]
+    meta = _meta({**{s: "Technology" for s in syms[:6]},
+                  **{s: "Utilities" for s in syms[6:]}})
+    idx = pd.bdate_range("2021-01-01", periods=200)
+    data = {s: np.cumprod(1 + np.random.default_rng(k).normal(5e-4, 1e-2, 200)) * 100
+            for k, s in enumerate(syms)}
+    data["G0.US"] = data["G0.US"].copy()
+    data["G0.US"][120:] *= 3.0                  # saut +200% en un jour (glitch)
+    prices = pd.DataFrame(data, index=idx)
+    budgets = pd.Series({"Technology|NA": 0.5, "Utilities|NA": 0.5})
+    rot = {"selection_fundamental_weight": 0.0, "selection_momentum_weight": 1.0,
+           "max_position_weight": 0.2, "selection_max_abs_momentum": 4.0,
+           "selection_max_daily_jump": 0.6}
+    w = select_positions(budgets, meta, prices, None, {"optimizer": {"rotation": rot}})
+    assert "G0.US" not in w.index               # exclu par le garde-fou
+    # sans les garde-fous, le titre glitché serait sélectionné (momentum le + fort)
+    rot_off = {**rot, "selection_max_abs_momentum": 0.0, "selection_max_daily_jump": 0.0}
+    w2 = select_positions(budgets, meta, prices, None, {"optimizer": {"rotation": rot_off}})
+    assert "G0.US" in w2.index
+
+
 # --------------------------------------------------------------------------- (e)
 class _FakeResp:
     def __init__(self, data, count=None):

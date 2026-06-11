@@ -134,6 +134,9 @@ DEFAULTS = {
     # garde-fou données : exclut les candidats au |momentum| > seuil sur la fenêtre
     # (prix ×N = split/devise non ajusté → ferait exploser le NAV). 0 = désactivé.
     "selection_max_abs_momentum": 4.0,   # 400 % sur ~6 mois
+    # garde-fou données : exclut les candidats ayant un saut JOURNALIER > seuil sur la
+    # fenêtre (print aberrant / split non ajusté). 0 = désactivé.
+    "selection_max_daily_jump": 0.6,     # 60 % en un jour
 }
 
 

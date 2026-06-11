@@ -80,11 +80,17 @@ def select_positions(budgets: pd.Series, meta: pd.DataFrame, prices_asof: pd.Dat
     # fait exploser le NAV — la winsorisation ±3σ du moteur ne coupe pas une rampe soutenue).
     max_abs_mom = float(get_param(params, "selection_max_abs_momentum"))
     if max_abs_mom and max_abs_mom > 0:
-        n0 = len(mom)
         mom = mom[mom.abs() <= max_abs_mom]
-        if len(mom) < n0:
-            logging.getLogger(__name__).debug(
-                "selection: %d candidats exclus (|momentum| > %.0f%%)", n0 - len(mom), max_abs_mom * 100)
+
+    # GARDE-FOU DONNÉES (saut journalier) : un mouvement journalier extrême sur la fenêtre
+    # trahit un prix corrompu (split/devise non ajusté, print aberrant). Comme la sélection
+    # re-tourne chaque rebal, un titre qui glitch en cours de détention est aussi attrapé au
+    # rebal suivant → l'exposition à tout glitch est bornée à ≤ 1 période.
+    max_jump = float(get_param(params, "selection_max_daily_jump"))
+    if max_jump and max_jump > 0 and len(mom):
+        win = prices_asof[mom.index].tail(lb + 1)
+        worst = win.pct_change().abs().max()
+        mom = mom.loc[worst[worst <= max_jump].index.intersection(mom.index)]
 
     cand = mom.index
     if cand.empty:

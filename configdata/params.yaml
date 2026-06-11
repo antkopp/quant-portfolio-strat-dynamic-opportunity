@@ -87,3 +87,4 @@ optimizer:
     selection_momentum_weight: 0.5
     max_position_weight: 0.12
     selection_max_abs_momentum: 4.0   # garde-fou : exclut |momentum| > 400% (données corrompues)
+    selection_max_daily_jump: 0.6     # garde-fou : exclut un saut journalier > 60% (print/split aberrant)
