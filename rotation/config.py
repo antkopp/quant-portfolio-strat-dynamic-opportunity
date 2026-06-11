@@ -131,6 +131,9 @@ DEFAULTS = {
     "selection_momentum_lookback": 126,
     "max_position_weight": 0.12,
     "min_adtv_rank_pct": 0.0,     # filtre liquidité optionnel (0 = désactivé)
+    # garde-fou données : exclut les candidats au |momentum| > seuil sur la fenêtre
+    # (prix ×N = split/devise non ajusté → ferait exploser le NAV). 0 = désactivé.
+    "selection_max_abs_momentum": 4.0,   # 400 % sur ~6 mois
 }
 
 

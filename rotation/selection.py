@@ -7,6 +7,7 @@ les meilleurs pour atteindre 10–20 lignes au total, en répartissant le budget
 catégorie. Repli sur le momentum seul si aucun fondamental PIT disponible.
 """
 
+import logging
 import numpy as np
 import pandas as pd
 
@@ -72,7 +73,22 @@ def select_positions(budgets: pd.Series, meta: pd.DataFrame, prices_asof: pd.Dat
     lb = min(lookback, len(prices_asof) - 1)
     mom = (prices_asof[cand].iloc[-1] / prices_asof[cand].iloc[-1 - lb] - 1.0)
     mom = mom.replace([np.inf, -np.inf], np.nan).dropna()
+
+    # GARDE-FOU DONNÉES : un momentum implausible (prix ×N sur la fenêtre) trahit une
+    # donnée corrompue (split/devise non ajusté, print aberrant) typique des small-caps EM.
+    # On EXCLUT ces titres de la sélection (sinon le momentum les choisit et leur rampe
+    # fait exploser le NAV — la winsorisation ±3σ du moteur ne coupe pas une rampe soutenue).
+    max_abs_mom = float(get_param(params, "selection_max_abs_momentum"))
+    if max_abs_mom and max_abs_mom > 0:
+        n0 = len(mom)
+        mom = mom[mom.abs() <= max_abs_mom]
+        if len(mom) < n0:
+            logging.getLogger(__name__).debug(
+                "selection: %d candidats exclus (|momentum| > %.0f%%)", n0 - len(mom), max_abs_mom * 100)
+
     cand = mom.index
+    if cand.empty:
+        return pd.Series(dtype=float)
     mom_z = _zscore(mom)
 
     # composite : fondamental (déjà z-scoré, PIT) + momentum

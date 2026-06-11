@@ -86,3 +86,4 @@ optimizer:
     selection_fundamental_weight: 0.5
     selection_momentum_weight: 0.5
     max_position_weight: 0.12
+    selection_max_abs_momentum: 4.0   # garde-fou : exclut |momentum| > 400% (données corrompues)

@@ -1,11 +1,12 @@
 """
-build_kid_html.py — Génère STRATEGY_KID.html à partir de STRATEGY_KID.md.
+build_kid_html.py — Génère les KID HTML à partir des KID Markdown.
 
-Reprend le thème "A4 dark" (fond bleu nuit, police Inter, accents bleus, format A4) +
-un graphique Highcharts illustrant le score de régime Risk On / Risk Off, et un schéma
-SVG du pipeline en 4 étapes (régime → baromètre → budgets → sélection).
+  STRATEGY_KID.md       → STRATEGY_KID.html        (fiche complète + schéma pipeline)
+  STRATEGY_KID_SHORT.md → STRATEGY_KID_SHORT.html  (synthèse 1 page, sans le grand schéma)
 
-Usage : python build_kid_html.py   → écrit STRATEGY_KID.html
+Thème "A4 dark" + graphique Highcharts du score de régime Risk On / Risk Off.
+
+Usage : python build_kid_html.py   → écrit les deux .html
 Dépendance : pip install markdown
 """
 
@@ -13,20 +14,13 @@ from pathlib import Path
 import markdown
 
 ROOT = Path(__file__).parent
-MD = ROOT / "STRATEGY_KID.md"
-OUT = ROOT / "STRATEGY_KID.html"
 
-body_html = markdown.markdown(
-    MD.read_text(encoding="utf-8"),
-    extensions=["tables", "fenced_code", "toc", "sane_lists", "attr_list"],
-)
-
-HTML = """<!DOCTYPE html>
+HEAD = """<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dynamic Opportunity — Key Information Document</title>
+<title>__TITLE__</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <style>
@@ -82,19 +76,20 @@ tr:hover td{background:rgba(0,191,255,.06);}
 <body>
 <div class="page">
   <div class="hero">
-    <div class="tag">Key Information Document</div>
-    <h1>Dynamic Opportunity — Rotation Risk On / Risk Off</h1>
-    <p>Rotation sectorielle &amp; géographique pilotée par un régime de marché lu sur ETF.
-       Actions only (ETF exclus de l'investissable) · 10-20 lignes · univers ACWI · long uniquement.</p>
+    <div class="tag">__TAG__</div>
+    <h1>__H1__</h1>
+    <p>__SUB__</p>
   </div>
 
   <div class="chart-card">
-    <p class="cap">Le <b>score de régime</b> &isin; [&minus;1, +1] : au-dessus du seuil <code>+0.20</code> &rarr;
+    <p class="cap">Le <b>score de régime</b> &isin; [&minus;1, +1] : au-dessus de <code>+0.20</code> &rarr;
        <span style="color:#5ce0a8">Risk On</span> (on penche vers l'offensif) ; en-dessous de <code>&minus;0.20</code> &rarr;
        <span style="color:#ff7a8a">Risk Off</span> (on penche vers le défensif). Une <b>bascule</b> déclenche un rebalancement le jour même.</p>
     <div id="chart"></div>
   </div>
+"""
 
+PIPELINE_SVG = """
   <div class="chart-card">
     <p class="cap">Le pipeline en un coup d'&oelig;il : <b>lire la phase de marché</b> &rarr; <b>pencher la grille</b>
        (secteur &times; r&eacute;gion) &rarr; <b>budg&eacute;ter les cases</b> &rarr; <b>choisir les meilleures actions</b>.
@@ -106,24 +101,17 @@ tr:hover td{background:rgba(0,191,255,.06);}
         </marker>
       </defs>
       <g text-anchor="middle">
-        <!-- INPUT -->
         <rect x="40" y="14" width="820" height="40" rx="8" fill="#0e1733" stroke="#1e3f66"/>
         <text x="450" y="39" fill="#cfe0ff" font-size="13.5">Univers ACWI — actions liquides (USD) &nbsp;+&nbsp; panel d'ETF (lecture du r&eacute;gime, jamais d&eacute;tenus)</text>
         <line x1="450" y1="55" x2="450" y2="72" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
-
-        <!-- ETAPE 1 : REGIME -->
         <rect x="120" y="74" width="660" height="52" rx="8" fill="#0e2540" stroke="#00bfff" stroke-width="1.4"/>
         <text x="450" y="95" fill="#7cc0ff" font-size="14" font-weight="700">&#9312; R&Eacute;GIME Risk On / Risk Off &nbsp;&middot;&nbsp; score &isin; [&minus;1,+1]</text>
         <text x="450" y="113" fill="#9fb3d4" font-size="10.5">ETF : momentum large &middot; cycliques/d&eacute;fensifs &middot; courbe &middot; cr&eacute;dit &middot; or &middot; USD &middot; EM/DM &nbsp;(&Eacute;TAPE 1)</text>
         <line x1="450" y1="127" x2="450" y2="146" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
-
-        <!-- ETAPE 2 : BAROMETRE -->
         <rect x="120" y="148" width="660" height="40" rx="8" fill="#0e1530" stroke="#1e3f66"/>
         <text x="450" y="167" fill="#cfe0ff" font-size="13">&#9313; BAROM&Egrave;TRE &mdash; grille secteur &times; r&eacute;gion, tilt modul&eacute; par le r&eacute;gime</text>
         <text x="450" y="182" fill="#7f9bc4" font-size="10.5">tilt = biais_statique &times; r&eacute;gime + momentum_z &nbsp;(&Eacute;TAPE 2)</text>
       </g>
-
-      <!-- offensif vs defensif -->
       <g text-anchor="middle" font-size="11.5">
         <rect x="150" y="200" width="270" height="38" rx="8" fill="#10241c" stroke="#5ce0a8"/>
         <text x="285" y="218" fill="#5ce0a8" font-weight="700">OFFENSIF (Risk On)</text>
@@ -136,26 +124,18 @@ tr:hover td{background:rgba(0,191,255,.06);}
         <line x1="285" y1="188" x2="285" y2="198"/><line x1="615" y1="188" x2="615" y2="198"/>
         <line x1="285" y1="239" x2="420" y2="258"/><line x1="615" y1="239" x2="480" y2="258"/>
       </g>
-
       <g text-anchor="middle">
-        <!-- ETAPE 3 : BUDGETS -->
         <rect x="120" y="260" width="660" height="40" rx="8" fill="#0e1530" stroke="#1e3f66"/>
         <text x="450" y="279" fill="#cfe0ff" font-size="13">&#9314; BUDGETS par cat&eacute;gorie &mdash; &prop; tilt, plafonds cat&eacute;gorie/r&eacute;gion (water-filling)</text>
         <text x="450" y="294" fill="#7f9bc4" font-size="10.5">&Sigma; = 1 &nbsp;(&Eacute;TAPE 3)</text>
         <line x1="450" y1="301" x2="450" y2="320" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
-
-        <!-- ETAPE 4 : SELECTION -->
         <rect x="120" y="322" width="660" height="52" rx="8" fill="#0e2540" stroke="#00bfff" stroke-width="1.4"/>
         <text x="450" y="343" fill="#7cc0ff" font-size="14" font-weight="700">&#9315; S&Eacute;LECTION &mdash; fondamental PIT (qualit&eacute;+croissance) + momentum</text>
         <text x="450" y="361" fill="#9fb3d4" font-size="10.5">10&ndash;20 lignes &middot; budget de cat&eacute;gorie r&eacute;parti &middot; plafond 12 %/position &nbsp;(&Eacute;TAPE 4)</text>
         <line x1="450" y1="375" x2="450" y2="394" stroke="#3a6ea5" stroke-width="1.4" marker-end="url(#ar)"/>
-
-        <!-- PORTEFEUILLE -->
         <rect x="300" y="396" width="300" height="40" rx="8" fill="#0e2540" stroke="#66ccff" stroke-width="1.5"/>
         <text x="450" y="421" fill="#cfe0ff" font-size="13.5" font-weight="700">PORTEFEUILLE &mdash; 10 &agrave; 20 actions</text>
       </g>
-
-      <!-- REBALANCEMENT (cote droit) -->
       <g text-anchor="middle">
         <rect x="630" y="460" width="230" height="74" rx="8" fill="#1a1330" stroke="#a98bff"/>
         <text x="745" y="481" fill="#c9b6ff" font-size="12.5" font-weight="700">Rebalancement hybride</text>
@@ -169,14 +149,12 @@ tr:hover td{background:rgba(0,191,255,.06);}
       <text x="60" y="523" fill="#9fb3d4" font-size="11">Backtest == production (d&eacute;cision de rebal reconstruite chronologiquement)</text>
     </svg>
   </div>
+"""
 
-__BODY__
-</div>
-
+CHART_SCRIPT = """
 <script>
-// Courbe illustrative du score de régime ∈ [-1,1] : somme de sinusoïdes lissée.
 (function(){
-  var data=[], on=[], off=[], t, s;
+  var data=[], t, s;
   for(t=0;t<=120;t+=1){
     s = 0.55*Math.sin(t/13) + 0.30*Math.sin(t/5+1.0) + 0.18*Math.sin(t/29);
     s = Math.max(-1,Math.min(1,s));
@@ -197,11 +175,8 @@ __BODY__
     tooltip:{backgroundColor:'#0e1530',borderColor:'#1e3f66',style:{color:'#e8eefc'},
       formatter:function(){return 'score : <b>'+this.y.toFixed(2)+'</b>';}},
     plotOptions:{series:{marker:{enabled:false}}},
-    series:[{
-      type:'line',data:data,lineWidth:2.4,
-      zoneAxis:'y',
-      zones:[{value:-0.20,color:'#ff7a8a'},{value:0.20,color:'#ffcf6b'},{color:'#5ce0a8'}]
-    }]
+    series:[{type:'line',data:data,lineWidth:2.4,zoneAxis:'y',
+      zones:[{value:-0.20,color:'#ff7a8a'},{value:0.20,color:'#ffcf6b'},{color:'#5ce0a8'}]}]
   });
 })();
 </script>
@@ -209,5 +184,35 @@ __BODY__
 </html>
 """
 
-OUT.write_text(HTML.replace("__BODY__", body_html), encoding="utf-8")
-print(f"OK -> {OUT}  ({OUT.stat().st_size//1024} Ko)")
+
+def render(md_name, out_name, title, tag, h1, sub, with_pipeline):
+    body = markdown.markdown(
+        (ROOT / md_name).read_text(encoding="utf-8"),
+        extensions=["tables", "fenced_code", "toc", "sane_lists", "attr_list"],
+    )
+    head = (HEAD.replace("__TITLE__", title).replace("__TAG__", tag)
+                .replace("__H1__", h1).replace("__SUB__", sub))
+    html = head + (PIPELINE_SVG if with_pipeline else "") + body + "\n</div>\n" + CHART_SCRIPT
+    (ROOT / out_name).write_text(html, encoding="utf-8")
+    print(f"OK -> {out_name}  ({(ROOT / out_name).stat().st_size // 1024} Ko)")
+
+
+def main():
+    render("STRATEGY_KID.md", "STRATEGY_KID.html",
+           "Dynamic Opportunity — Key Information Document",
+           "Key Information Document",
+           "Dynamic Opportunity — Rotation Risk On / Risk Off",
+           "Rotation sectorielle &amp; géographique pilotée par un régime de marché lu sur ETF. "
+           "Actions only (ETF exclus de l'investissable) · 10-20 lignes · univers ACWI · long uniquement.",
+           with_pipeline=True)
+    render("STRATEGY_KID_SHORT.md", "STRATEGY_KID_SHORT.html",
+           "Dynamic Opportunity — KID court",
+           "KID court · synthèse",
+           "Dynamic Opportunity — l'essentiel",
+           "Rotation Risk On / Risk Off : lire la phase de marché, pencher la grille "
+           "secteur × région, choisir 10-20 actions. Synthèse en une page.",
+           with_pipeline=False)
+
+
+if __name__ == "__main__":
+    main()
