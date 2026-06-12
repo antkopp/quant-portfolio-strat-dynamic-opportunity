@@ -174,6 +174,12 @@ class _FakeQuery:
     def lte(self, col, val):
         self.filters.append(("lte", col, val)); return self
 
+    def gte(self, col, val):
+        self.filters.append(("gte", col, val)); return self
+
+    def order(self, col, desc=False):
+        self._order = (col, desc); return self
+
     def range(self, a, b):
         self._rng = (a, b); return self
 
@@ -186,6 +192,11 @@ class _FakeQuery:
                 rows = [r for r in rows if r.get(col) == val]
             elif kind == "lte":
                 rows = [r for r in rows if str(r.get(col)) <= str(val)]
+            elif kind == "gte":
+                rows = [r for r in rows if str(r.get(col)) >= str(val)]
+        if getattr(self, "_order", None):
+            col, desc = self._order
+            rows = sorted(rows, key=lambda r: str(r.get(col)), reverse=desc)
         if self._rng:
             a, b = self._rng
             rows = rows[a:b + 1]
@@ -267,3 +278,74 @@ def test_runner_rebalances_on_anchor_and_flip():
     assert pd.Timestamp("2022-03-01").date() in rebal_dates
     # et il doit y avoir au moins une ancre hebdo avant la bascule
     assert sum(1 for d in rebal_dates if d < pd.Timestamp("2022-03-01").date()) >= 1
+
+
+# --------------------------------------------------------------------------- (g)
+def test_macro_pit_surprise_and_nolookahead():
+    from rotation.data_macro import MacroPIT
+    events = [
+        # surprise de croissance POSITIVE aux US, dans la fenêtre
+        {"country": "US", "event_type": "GDP Growth Rate", "actual": "3.0",
+         "estimate": "2.0", "event_date": "2021-05-15"},
+        # surprise d'inflation POSITIVE en zone EU, dans la fenêtre
+        {"country": "DE", "event_type": "Inflation Rate YoY", "actual": "5.0",
+         "estimate": "3.0", "event_date": "2021-05-20"},
+        # événement FUTUR (après as_of) → doit être ignoré
+        {"country": "US", "event_type": "GDP Growth Rate", "actual": "9.9",
+         "estimate": "0.0", "event_date": "2021-09-01"},
+    ]
+    indic = [
+        {"country_iso3": "USA", "indicator_code": "gdp_growth_annual",
+         "period_date": "2019-12-31", "value": 2.0},
+        {"country_iso3": "USA", "indicator_code": "gdp_growth_annual",
+         "period_date": "2020-12-31", "value": 3.0},   # tendance +
+    ]
+    macro = MacroPIT(_client=_FakeClient({"economic_events": events,
+                                          "macro_indicators": indic}))
+    f = macro.features("2021-06-30")
+    assert f["growth_surprise"]["NA"] > 0           # GDP US a battu l'estimé
+    assert f["inflation_surprise"]["EU"] > 0
+    assert f["growth_trend"]["NA"] > 0              # croissance en hausse YoY
+    # le pic futur (9.9 vs 0) n'a pas gonflé la surprise → moyenne reste à +1 (un seul signe)
+    assert f["growth_surprise"]["NA"] == 1.0
+
+
+# --------------------------------------------------------------------------- (h)
+def test_factors_pit_quality_revisions_blackout():
+    from rotation.data_factors import FactorsPIT
+    T = "Common Stock"
+    tickers = [{"id": "id1", "code": "AAA", "exchange": "US", "type": T},
+               {"id": "id2", "code": "BBB", "exchange": "US", "type": T}]
+    km = [  # fmp_key_metrics : id1 plus rentable que id2
+        {"ticker_id": "id1", "fiscal_date": "2020-12-31",
+         "data": {"roic": 0.20, "returnOnEquity": 0.25, "netProfitMargin": 0.18,
+                  "revenuePerShare": 10}},
+        {"ticker_id": "id1", "fiscal_date": "2019-12-31",
+         "data": {"revenuePerShare": 8}},
+        {"ticker_id": "id2", "fiscal_date": "2020-12-31",
+         "data": {"roic": 0.04, "returnOnEquity": 0.05, "netProfitMargin": 0.03,
+                  "revenuePerShare": 10}},
+        {"ticker_id": "id2", "fiscal_date": "2019-12-31",
+         "data": {"revenuePerShare": 10}},                # croissance RPS = 0 (< +25% de id1)
+        # ligne FUTURE (filée après as_of via fiscal_date+lag) → ignorée
+        {"ticker_id": "id2", "fiscal_date": "2025-12-31",
+         "data": {"roic": 9.9, "revenuePerShare": 99}},
+    ]
+    upg = [{"ticker_id": "id1", "previous_grade": "Hold", "new_grade": "Buy",
+            "action": "upgrade", "published_date": "2021-05-01"},
+           {"ticker_id": "id2", "previous_grade": "Buy", "new_grade": "Hold",
+            "action": "downgrade", "published_date": "2021-05-02"}]
+    earn = [{"ticker_id": "id1", "report_date": "2021-04-20", "eps_surprise_pct": 8.0},
+            {"ticker_id": "id2", "report_date": "2021-07-15", "eps_surprise_pct": -3.0}]  # futur
+
+    fp = FactorsPIT(["US"], _client=_FakeClient(
+        {"tickers": tickers, "fmp_key_metrics": km, "fmp_financial_ratios": [],
+         "fmp_upgrades_downgrades": upg, "earnings_calendar": earn}))
+    z = fp.factor_frame("2021-06-30", ["AAA.US", "BBB.US"])
+    assert z.loc["AAA.US", "quality"] > z.loc["BBB.US", "quality"]   # id1 plus rentable
+    assert z.loc["AAA.US", "growth"] > z.loc["BBB.US", "growth"]     # RPS +25% vs 0
+    assert z.loc["AAA.US", "revisions"] > 0                          # upgrade visible
+
+    # blackout : id2 publie le 2021-07-15, soit dans 15 j → bloqué à 30 j, pas à 5 j
+    assert "BBB.US" in fp.earnings_blackout("2021-06-30", ["AAA.US", "BBB.US"], 30)
+    assert "BBB.US" not in fp.earnings_blackout("2021-06-30", ["AAA.US", "BBB.US"], 5)

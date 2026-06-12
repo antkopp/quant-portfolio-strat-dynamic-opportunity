@@ -137,6 +137,27 @@ DEFAULTS = {
     # garde-fou données : exclut les candidats ayant un saut JOURNALIER > seuil sur la
     # fenêtre (print aberrant / split non ajusté). 0 = désactivé.
     "selection_max_daily_jump": 0.6,     # 60 % en un jour
+
+    # --- intégration macro (étapes 1-2) ---
+    "regime_macro_weight": 0.40,         # poids du score macro vs market-based (régime 1D)
+    "barometer_macro_weight": 0.50,      # poids des tilts macro (secteur+région) dans le baromètre
+    "macro_surprise_window_days": 120,   # fenêtre d'agrégation des surprises (economic_events)
+    "macro_pub_lag_days": 90,            # retard de publication macro_indicators (PIT)
+    "gmd_pub_lag_days": 365,             # retard de publication global_macro_data (PIT)
+    "regime_method_2d": False,           # True → régime quadrant croissance×inflation (Phase 2)
+
+    # --- sélection multi-facteurs (étape 4, Phase 3) ---
+    "fmp_report_lag_days": 75,           # retard de publication fmp_ratios/key_metrics (PIT)
+    "selection_revisions_window_days": 120,
+    "earnings_blackout_days": 0,         # exclut les titres publiant sous N jours (0 = off)
+    "selection_factor_weights": {        # poids des piliers (renormalisés sur les dispos)
+        "quality":   1.0,
+        "value":     0.8,
+        "growth":    0.8,
+        "revisions": 1.0,
+        "surprise":  0.6,
+        "momentum":  1.0,
+    },
 }
 
 
@@ -154,3 +175,82 @@ def region_of(symbol: str) -> str:
         return "NA"  # convention Yahoo (sans suffixe) = US
     suffix = symbol.rsplit(".", 1)[-1].upper()
     return REGION_BY_EXCHANGE.get(suffix, "Other")
+
+
+# ---------------------------------------------------------------------------
+# MACRO — cartes pays → région (grandes économies, suffisant pour l'agrégation).
+# `country_iso3` pour macro_indicators / global_macro_data ; codes EODHD (2 lettres)
+# pour economic_events.
+# ---------------------------------------------------------------------------
+REGION_BY_ISO3 = {
+    "USA": "NA", "CAN": "NA",
+    "DEU": "EU", "FRA": "EU", "GBR": "EU", "CHE": "EU", "ITA": "EU", "ESP": "EU",
+    "NLD": "EU", "SWE": "EU", "BEL": "EU", "AUT": "EU", "NOR": "EU", "DNK": "EU", "FIN": "EU",
+    "JPN": "ADM", "AUS": "ADM", "HKG": "ADM", "SGP": "ADM", "KOR": "ADM", "NZL": "ADM",
+    "CHN": "EM", "IND": "EM", "BRA": "EM", "MEX": "EM", "ZAF": "EM", "TWN": "EM", "TUR": "EM",
+}
+REGION_BY_COUNTRY_CODE = {   # codes EODHD economic_events (≈ ISO2)
+    "US": "NA", "CA": "NA",
+    "DE": "EU", "FR": "EU", "GB": "EU", "UK": "EU", "CH": "EU", "IT": "EU", "ES": "EU",
+    "NL": "EU", "SE": "EU",
+    "JP": "ADM", "AU": "ADM", "HK": "ADM", "SG": "ADM", "KR": "ADM",
+    "CN": "EM", "IN": "EM", "BR": "EM", "MX": "EM", "ZA": "EM",
+}
+REGIONS = ["NA", "EU", "ADM", "EM"]
+
+
+def region_of_country(code: str) -> str:
+    """Région d'un code pays (ISO3 ou code EODHD 2 lettres), sinon 'Other'."""
+    if not code:
+        return "Other"
+    c = str(code).upper()
+    return REGION_BY_ISO3.get(c) or REGION_BY_COUNTRY_CODE.get(c, "Other")
+
+
+# Indicateurs macro_indicators par thème (indicator_code EODHD).
+MACRO_INDICATORS = {
+    "growth":     ["gdp_growth_annual", "gdp_current_usd"],
+    "inflation":  ["inflation_consumer_prices_annual"],
+    "real_rate":  ["real_interest_rate"],
+    "unemployment": ["unemployment_total_percent"],
+}
+
+# Classification des economic_events par mots-clés du champ event_type (libellé EODHD).
+EVENT_CATEGORY_KEYWORDS = {
+    "growth":    ["gdp", "pmi", "ism", "industrial production", "retail sales",
+                  "employment", "payroll", "nonfarm", "unemployment", "confidence"],
+    "inflation": ["cpi", "inflation", "ppi", "price index", "pce"],
+    "policy":    ["interest rate", "rate decision", "fed", "ecb", "boj", "policy rate"],
+}
+
+# Sensibilité macro→secteur : signe de l'effet d'une HAUSSE de chaque variable macro sur
+# l'attrait relatif du secteur. Clés = secteurs raw (taxonomie EODHD/Yahoo).
+# Variables : growth (surprise/tendance de croissance), inflation, real_rate (taux réel).
+MACRO_SECTOR_SENSITIVITY = {
+    #                         growth  inflation  real_rate
+    "Technology":            (+1.0,    -0.3,     -0.6),
+    "Consumer Cyclical":     (+1.0,    -0.3,     -0.4),
+    "Industrials":           (+0.8,    +0.1,     -0.2),
+    "Basic Materials":       (+0.6,    +0.8,     -0.1),
+    "Energy":                (+0.4,    +1.0,     +0.1),
+    "Financial Services":    (+0.5,    +0.1,     +0.8),
+    "Communication Services": (+0.4,   -0.2,     -0.3),
+    "Real Estate":           (+0.2,    +0.3,     -0.8),
+    "Healthcare":            (-0.2,    -0.1,     -0.1),
+    "Consumer Defensive":    (-0.4,    +0.2,     +0.0),
+    "Utilities":             (-0.5,    +0.1,     -0.7),
+}
+
+# Phase 2 — playbook quadrant croissance×inflation → biais sectoriel.
+# Quadrants : 'goldilocks' (croissance+, inflation−), 'reflation' (+,+),
+#             'stagflation' (−,+), 'deflation' (−,−).
+QUADRANT_PLAYBOOK = {
+    "goldilocks":  {"Technology": 1.0, "Consumer Cyclical": 1.0, "Communication Services": 0.6,
+                    "Industrials": 0.5, "Utilities": -0.6, "Consumer Defensive": -0.6},
+    "reflation":   {"Energy": 1.0, "Basic Materials": 1.0, "Financial Services": 0.8,
+                    "Industrials": 0.6, "Utilities": -0.4, "Technology": -0.2},
+    "stagflation": {"Energy": 1.0, "Consumer Defensive": 0.6, "Healthcare": 0.5,
+                    "Utilities": 0.3, "Consumer Cyclical": -0.8, "Technology": -0.6},
+    "deflation":   {"Consumer Defensive": 1.0, "Utilities": 0.8, "Healthcare": 0.8,
+                    "Technology": -0.2, "Energy": -0.8, "Basic Materials": -0.8},
+}

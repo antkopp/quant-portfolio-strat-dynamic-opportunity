@@ -84,11 +84,53 @@ def check_sectors(sb):
         print(f"  fundamentals_snapshot : erreur {e}")
 
 
+def _coverage(sb, table, date_col):
+    """Compte + plage de dates d'une table (avec date de publication PIT)."""
+    try:
+        total = (sb.schema("raw").table(table).select("ticker_id", count="exact")
+                 .limit(1).execute()).count
+    except Exception:
+        try:
+            total = (sb.schema("raw").table(table).select("id", count="exact")
+                     .limit(1).execute()).count
+        except Exception as e:
+            return f"  {table:28s}: erreur ({e})"
+    try:
+        mn = (sb.schema("raw").table(table).select(date_col)
+              .not_.is_(date_col, "null").order(date_col).limit(1).execute()).data
+        mx = (sb.schema("raw").table(table).select(date_col)
+              .not_.is_(date_col, "null").order(date_col, desc=True).limit(1).execute()).data
+        rng = f"{mn[0][date_col] if mn else '?'} → {mx[0][date_col] if mx else '?'}"
+    except Exception:
+        rng = "(pas de colonne date)"
+    return f"  {table:28s}: {total:>9} lignes · {date_col} {rng}"
+
+
+def check_new_sources(sb):
+    print("\n=== 4. Sources macro & FMP (profondeur PIT) ===")
+    specs = [
+        ("economic_events", "event_date"),
+        ("macro_indicators", "period_date"),
+        ("global_macro_data", "period_date"),
+        ("earnings_calendar", "report_date"),
+        ("fmp_financial_ratios", "fiscal_date"),
+        ("fmp_key_metrics", "fiscal_date"),
+        ("fmp_upgrades_downgrades", "published_date"),
+        ("fmp_price_targets", "published_date"),
+        ("fmp_dcf", "date"),
+    ]
+    for table, col in specs:
+        print(_coverage(sb, table, col))
+    print("  ⚠️ economic_events a une sync glissante courte → si l'historique est faible,"
+          " les surprises macro seront ~nulles avant la mise en place du cron.")
+
+
 def main():
     sb = get_supabase_client()
     check_etfs(sb)
     check_financials(sb)
     check_sectors(sb)
+    check_new_sources(sb)
     print("\nDiagnostic terminé.")
 
 
